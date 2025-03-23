@@ -36,6 +36,12 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "proxies": [
+      {
+        "path": "/api",
+        "proxy": "http://localhost:5000"
+      }
+    ]
   }
 }
