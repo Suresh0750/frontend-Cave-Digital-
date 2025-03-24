@@ -1,23 +1,33 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import { useCallback, useEffect, useState } from "react";
 import { Alert, Task } from "react-native";
 import Toast from "react-native-toast-message";
 import { deleteTask, getTasks } from "../services/_taskService";
 import { useFocusEffect } from "expo-router";
 import _ from 'lodash'; 
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
 const useTask = () => {
 
   const [searchText, setSearchText] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [cachedTasks, setCachedTasks] = useState<{ [key: string]: Task[] }>({});
-  const [cachedTotalPages,setCachedTotalPages] = useState<{ [key: string]: number}>({});
   const [totalTasks, setTotalTasks] = useState(0);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [cachedTasks, setCachedTasks] = useState<{ [key: string]: Task[] }>({});
+  const [cachedTotalPages,setCachedTotalPages] = useState<{ [key: string]: number}>({});
   
   const [loading, setLoading] = useState(false);
   const tasksPerPage = 5; 
+
+
+//  useEffect(()=>{
+//   const getToken = async () => {
+//     const token = await AsyncStorage.getItem('token');
+//     if(!token){
+//       navigation.navigate('Login');
+//     }
+//   }
 
   /** 🔹 Fetch tasks with caching and API optimization */
   const fetchTasks = async (query: string, page: number) => {
@@ -58,7 +68,7 @@ const useTask = () => {
     }
   };
 
-  /** 🔹 Optimized search with debouncing */
+  // *  Optimized search with debouncing
   const debouncedFetchTasks = useCallback(_.debounce(fetchTasks, 500), []);
 
   /** 🔹 Handle search input changes */
@@ -66,7 +76,7 @@ const useTask = () => {
     setSearchText(text);
     setCurrentPage(1); // Reset to first page when searching
 
-    // ✅ Check cache first before making API call
+    // * Check cache first before making API call
     const cacheKey = `${text}-1`;
     if (cachedTasks[cacheKey]) {
       setTasks(cachedTasks[cacheKey]);
@@ -93,7 +103,6 @@ const useTask = () => {
   );
 
   const handleDelete = (taskId: string) => {
-    console.log("Delete Pressed", taskId);
     Alert.alert("Delete", "Are you sure you want to delete this task?", [
       { text: "Cancel", style: "cancel" },
       { text: "Delete", style: "destructive", onPress:async () =>{

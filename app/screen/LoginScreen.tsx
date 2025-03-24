@@ -1,22 +1,32 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { View, TextInput, Button, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Formik } from 'formik';
 import { loginUser } from '../services/_authService';
 import Toast from 'react-native-toast-message';
 import { LoginSchema } from '../ValidationSchema/useSchema';
+import { AuthContext } from '../navigation/AuthContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {useEffect} from 'react';
 
 
 const LoginScreen = ({ navigation }: { navigation: any }) => {
   const [isLoading, setIsLoading] = useState(false);
-  // useFocusEffect(() => {
-  //     const checkToken = async () => {
-  //       const storedToken = await AsyncStorage.getItem('token'); 
-  //       if (storedToken) {
-  //         navigation.navigate('Home');
-  //       }
-  //     };
-  //     checkToken();
-  //   });
+  const {login} = useContext(AuthContext);
+  useEffect(() => {
+    const checkToken = async () => {
+      try {
+        const token = await AsyncStorage.getItem('token');
+        if (token) {
+          navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
+        }
+      } catch (error) {
+        console.error('Error getting token:', error);
+      }
+    };
+
+    checkToken();
+  }); 
+
   const handleLogin = async (values: any) => {
     try {
       if(isLoading) return;
@@ -25,23 +35,18 @@ const LoginScreen = ({ navigation }: { navigation: any }) => {
       const response :any = await loginUser(values.email, values.password);
       console.log('Login successful:', response);
       if(response.success){
-        Toast.show({
+      await login(response.token);
+
+       await Toast.show({
           text1: response?.message || 'Login successful',
           type: 'success',
           position: 'top',  
         });
-
         setTimeout(() => {
-          navigation.navigate('Home');
+           navigation.navigate('Home');
         }, 2000);
         
-      } else {
-        Toast.show({
-          text1: response?.message || 'Login failed',
-          type: 'error',
-          position: 'top',
-        });
-      }
+      } 
     } catch (error:any) {
       Toast.show({
         text1: error?.message || 'Login failed',
@@ -52,7 +57,7 @@ const LoginScreen = ({ navigation }: { navigation: any }) => {
       setIsLoading(false);
     }
   };
-
+  
   return (
     <View style={styles.container}>
       {/* Login Header */}

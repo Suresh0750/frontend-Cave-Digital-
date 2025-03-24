@@ -1,6 +1,5 @@
-import { Stack } from "expo-router";
+import { Slot } from "expo-router";
 
-export default function RootLayout() {
-  return <Stack />;
+export default function Layout() {
+  return <Slot />; // This ensures nested routes work correctly
 }
-  

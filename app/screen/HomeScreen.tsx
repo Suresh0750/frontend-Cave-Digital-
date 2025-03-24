@@ -1,6 +1,6 @@
 
 import { View, Text, StyleSheet, Button, TextInput, FlatList, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { CommonActions, useNavigation } from '@react-navigation/native';
 import { Task } from '../types/tasks';
 import Icon from 'react-native-vector-icons/Feather';
 import Toast from 'react-native-toast-message';
@@ -8,7 +8,9 @@ import { useDispatch } from 'react-redux';
 import {storeEditeTask } from '../store/slices/taskSlice';
 import useTask from '../hooks/useTask';
 
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useEffect } from 'react';
 
 export default function TaskScreen() {
   const navigation = useNavigation();
@@ -18,27 +20,59 @@ export default function TaskScreen() {
   const dispatch = useDispatch();
   const tasksPerPage = 5; 
 
+  useEffect(()=>{
+    const getToken = async () => {
+      const token = await AsyncStorage.getItem('token');
+      if(!token){
+        navigation.navigate('Login' as never);
+      }
+    }
+    getToken();
+  },[navigation])
+
   const handleLogout = async () => {
     await AsyncStorage.removeItem('token');
-    navigation.navigate('Login' as never);
+    const token = await AsyncStorage.getItem('token');
+    if(!token){
+      Toast.show({
+        text1:'Logged out successfully',
+        type:'success',
+        position:'top'
+      })
+      setTimeout(()=>{
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [{ name: 'Login' }], 
+          })
+        );
+        
+      },2000)
+    }
   }
- 
+  
+
+
+
  
   const handleEdit = (task:Task) => {
     dispatch(storeEditeTask(task));
     navigation.navigate('EditTask' as never); 
+   
   }
+
 
 
   return (
     <View style={styles.container}>
+      <Text style={styles.text}>My Task</Text>
       <TextInput
         style={styles.searchInput}
         placeholder="Search tasks..."
         value={searchText}
         onChangeText={handleSearch}
       />
-      <Button title="Add Task" onPress={() => navigation.navigate('AddTask' as never)} />
+      <Button  title="Add Task" onPress={() => navigation.navigate('AddTask' as never)} />
       {loading ? (
         <ActivityIndicator size="large" color="#007BFF" />
       ) : (
@@ -87,6 +121,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     backgroundColor: '#f5f5f5',
+    marginTop: 50,
   },
   searchInput: {
     height: 40,
@@ -141,5 +176,14 @@ const styles = StyleSheet.create({
   taskActions:{
     flexDirection:'row',
     alignItems:'center'
-  }
+  },
+  text: {
+    fontFamily: 'Poppins', 
+    fontSize: 20,
+    fontWeight: '800', 
+    color: '#333',
+    textAlign:'center',
+
+  },
+  
 });

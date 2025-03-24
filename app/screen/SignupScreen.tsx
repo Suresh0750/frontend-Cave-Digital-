@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   TextInput,
@@ -12,18 +12,10 @@ import { Formik } from 'formik';
 import * as Yup from 'yup';
 import { signupUser } from '@/app/services/_authService';
 import Toast from 'react-native-toast-message';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { SignupSchema } from '../ValidationSchema/useSchema';
 
 
-// Validation Schema
-const SignupSchema = Yup.object().shape({
-  name: Yup.string().trim().min(2, 'Name must be at least 2 characters').required('Name is required'),
-  email: Yup.string()
-    .email('Invalid email')
-    .required('Email is required'),
-  password: Yup.string().trim()
-    .min(6, 'Password must be at least 6 characters')
-    .required('Password is required'),
-});
 
 type SignupFormValues = {
   name: string;
@@ -32,11 +24,26 @@ type SignupFormValues = {
 };
 
 type SignupScreenProps = {
-  navigation: any; // Replace with proper navigation type if using @react-navigation
+  navigation: any; 
 };
 
 const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const checkToken = async () => {
+      try {
+        const token = await AsyncStorage.getItem('token');
+        if (token) {
+          navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
+        }
+      } catch (error) {
+        console.error('Error getting token:', error);
+      }
+    };
+
+    checkToken();
+  }); 
 
   const handleSignup = async (values: SignupFormValues) => {
     try {

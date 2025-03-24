@@ -38,4 +38,4 @@ yarn-error.*
 app-example
 
 
-app/utils
+app/utils/contstant.ts
